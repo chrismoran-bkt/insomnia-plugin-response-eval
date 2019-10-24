@@ -139,7 +139,7 @@ module.exports.templateTags = [
           if(filteredOutput.length === 1) {
             filteredOutput = filteredOutput[0];
           }
-          output = {output, _};
+          output = filteredOutput;
         } else {
           if(sanitizedSubFilter.filter(output)) {
             filteredOutput = sanitizedSubFilter.map(output);
@@ -148,7 +148,6 @@ module.exports.templateTags = [
       } else {
         throw new Error(`Unknown field ${field}`);
       }
-      console.log('OUTPUT:', {filteredOutput, output});
 
       let r = filteredOutput ? filteredOutput : output;
       if (js) {
@@ -174,20 +173,11 @@ function sanitizeSubFilter(subFilter) {
   }
   const subReg = new RegExp('\/(.*)\/([a-zA-Z]*)');
   if(subReg.test(sanitizedSubFilter)) {
-    console.log('Regex: ', subReg.source);
     const tags = subReg.exec(sanitizedSubFilter);
-    console.log('FOUND REGEX:', sanitizedSubFilter, tags);
     const reg = new RegExp(tags[1], tags.length > 2 ? tags[2] : 'g');
     return {
-      filter: (input) => {
-        return reg.test(input);
-      },
-      map: (input) => {
-        console.log('Checking: ' + input);
-        let res = reg.exec(input);
-        console.log('Returning:', res);
-        return res;
-      }
+      filter: (input) => reg.test(input),
+      map: (input) => reg.exec(input)
     };
   }
   return {
@@ -207,7 +197,6 @@ function matchHeader(headers, name, subFilter) {
 
   const header = headers.filter(h => h.name.toLowerCase() === name.toLowerCase());
 
-  console.log('HEADER:', header);
   if (!header || header.length === 0) {
     const names = headers.map(c => `"${c.name}"`).join(',\n\t');
     throw new Error(`No header with name "${name}".\nChoices are [\n\t${names}\n]`);
@@ -217,8 +206,5 @@ function matchHeader(headers, name, subFilter) {
 
 function matchSubHeader(header, f) {
   let results = header.filter(h => f.filter(h.value));
-  console.log('Filtered: ', results);
-  let _mapped = results.map(result => f.map(result.value));
-  console.log('Filtered and Mapped: ', _mapped);
-  return _mapped;
+  return results.map(result => f.map(result.value));
 }

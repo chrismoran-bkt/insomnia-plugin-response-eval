@@ -143,13 +143,14 @@ module.exports.templateTags = [
         } else {
           if(sanitizedSubFilter.filter(output)) {
             filteredOutput = sanitizedSubFilter.map(output);
+            output = filteredOutput;
           }
         }
       } else {
         throw new Error(`Unknown field ${field}`);
       }
 
-      let r = filteredOutput ? filteredOutput : output;
+      let r = output;
       if (js) {
         try {
           r = eval(js);
